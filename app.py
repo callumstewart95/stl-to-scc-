@@ -29,8 +29,8 @@ def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
     # Known unwanted characters and patterns
     unwanted_chars = [
-        '\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C', 'Å', 'é', '\x10', '\x11', '\x12', 
-        'X32', 'X12', 'X13', 'X10'  # Add other patterns that appear to be from metadata or formatting
+        '\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C', 'Å', 'é', '\x10', '\x11', '\x12',
+        'X32', 'X12', 'X13', 'X10', # Add other patterns that appear to be from metadata or formatting
     ]
     for char in unwanted_chars:
         text = text.replace(char, " ")
@@ -49,22 +49,19 @@ def sanitize_text(text):
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
-   
-    # Try different encodings to handle different cases
+
+    # Try decoding with Code Page 850 (CP850)
     try:
         lines = stl_content.decode("cp850", errors="ignore").split("\n")
     except UnicodeDecodeError:
-      # Fallback to other encodings in case CP850 fails
-        try:
-            lines = stl_content.decode("latin-1", errors="ignore").split("\n")
-        except UnicodeDecodeError:
-            lines = stl_content.decode("ISO-8859-1", errors="ignore").split("\n")
+        # Fallback to other encodings in case CP850 fails
+        lines = stl_content.decode("latin-1", errors="ignore").split("\n")
     
-  # Debugging: Show the first 30 lines to ensure it's being read properly
-    st.text("Preview of STL file (first 10 lines):")
-    st.text("\n".join(lines[:10]))
-    
-  # Regex to extract the timecodes and text
+    # Debugging: Show raw content to understand encoding issues
+    st.text("Raw decoded content (first 50 lines):")
+    st.text("\n".join(lines[:50]))  # Show more lines for deeper inspection
+
+    # Regex to extract the timecodes and text
     for line in lines:
         match = re.search(r'(\d{2}:\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2}:\d{2}:\d{2})?\s*(.*)', line.strip())
         if match:
@@ -91,16 +88,17 @@ def parse_stl(stl_content):
             elif "{PA}" in text:
                 control_code = "9429"  # Paint-on captions
                 text = text.replace("{PA}", "")
-
-              # Sanitize the subtitle text to remove unwanted characters
+            
+            # Sanitize the subtitle text to remove unwanted characters
             text = sanitize_text(text)
-          
-            captions.append({
-                "start": start_scc,
-                "end": end_scc,
-                "text": text.strip(),
-                "control_code": control_code
-            })
+            
+            if text:  # Only append valid captions
+                captions.append({
+                    "start": start_scc,
+                    "end": end_scc,
+                    "text": text,
+                    "control_code": control_code
+                })
     
     if not captions:
         st.error("No captions found. Please check your STL file format.")
