@@ -23,14 +23,14 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
-    lines = stl_content.decode("latin-1").split("\n")
+    lines = stl_content.decode("latin-1", errors="ignore").split("\n")
     
     # Debugging: Display first few lines of the file
     st.text("Preview of STL file:")
     st.text("\n".join(lines[:10]))
     
     for line in lines:
-        match = re.match(r'^(\d{2}:\d{2}:\d{2}:\d{2})\s+(-|\d{2}:\d{2}:\d{2}:\d{2})\s+(.*)', line)
+        match = re.match(r'^(\d{2}:\d{2}:\d{2}:\d{2})\s+(-|\d{2}:\d{2}:\d{2}:\d{2})\s+(.+)$', line.strip())
         if match:
             start, end, text = match.groups()
             if end == "-":  # Handle missing end timecodes
@@ -59,8 +59,6 @@ def parse_stl(stl_content):
                 "text": text.strip(),
                 "control_code": control_code
             })
-        else:
-            st.warning(f"Unmatched line: {line}")
     
     if not captions:
         st.error("No captions found. Please check your STL file format.")
