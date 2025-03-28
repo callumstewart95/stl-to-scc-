@@ -25,7 +25,7 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
     new_frames = remaining % target_fps
     return f"{new_hours:02}:{new_minutes:02}:{new_seconds:02};{new_frames:02}"
 
-  def sanitize_text(text):
+def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
     # Remove non-printable characters, including control characters
     text = ''.join(char for char in text if char.isprintable())
