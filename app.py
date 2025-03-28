@@ -34,6 +34,11 @@ def sanitize_text(text):
     # Now, remove all control characters (ASCII 0-31, and 127)
     text = re.sub(r'[\x00-\x1F\x7F]', '', text)
 
+   # Remove specific unwanted characters like , , ,  (add more if needed)
+    unwanted_chars = ['\x16', '\x01', '\x0e', '\x11']  # Specific unwanted characters
+    for char in unwanted_chars:
+        text = text.replace(char, " ")
+
     # Remove any non-printable characters, keeping only text that is visible
     text = ''.join(c for c in text if c.isprintable())
 
