@@ -50,8 +50,9 @@ def parse_stl(stl_content):
    
     # Try different encodings to handle different cases
     try:
-        lines = stl_content.decode("utf-8", errors="ignore").split("\n")
+        lines = stl_content.decode("cp850", errors="ignore").split("\n")
     except UnicodeDecodeError:
+      # Fallback to other encodings in case CP850 fails
         try:
             lines = stl_content.decode("latin-1", errors="ignore").split("\n")
         except UnicodeDecodeError:
