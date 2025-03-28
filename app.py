@@ -48,11 +48,14 @@ def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
    
-    # Decode the content and handle potential unwanted encoding
+    # Try different encodings to handle different cases
     try:
         lines = stl_content.decode("utf-8", errors="ignore").split("\n")
     except UnicodeDecodeError:
-        lines = stl_content.decode("latin-1", errors="ignore").split("\n")
+        try:
+            lines = stl_content.decode("latin-1", errors="ignore").split("\n")
+        except UnicodeDecodeError:
+            lines = stl_content.decode("ISO-8859-1", errors="ignore").split("\n")
     
    # Debugging: Show the first few lines to ensure it's being read properly
     st.text("Preview of STL file (first 10 lines):")
