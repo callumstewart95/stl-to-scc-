@@ -27,8 +27,10 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 
 def remove_unwanted_characters(text):
     """Remove unwanted control characters and replace them with spaces."""
-    # Remove non-printable characters using regular expression
-    text = re.sub(r'[^\x20-\x7E]', ' ', text)  # Only keep printable ASCII characters
+    # Remove non-printable characters and control codes (ASCII < 32)
+    text = re.sub(r'[\x00-\x1F\x7F-\x9F\xA0]', ' ', text)
+    # Clean up multiple spaces and trim
+    text = re.sub(r'\s+', ' ', text).strip()
     return text
 
 def parse_stl(stl_content):
@@ -73,7 +75,7 @@ def parse_stl(stl_content):
             captions.append({
                 "start": start_scc,
                 "end": end_scc,
-                "text": text.strip(),
+                "text": text,
                 "control_code": control_code
             })
     
