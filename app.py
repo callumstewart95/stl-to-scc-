@@ -11,9 +11,8 @@ def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
     
-    # Debugging: Display raw bytes of the file content
-    st.text("Raw Bytes (first 200 bytes):")
-    st.text(view_raw_bytes(stl_content))  # Show raw bytes for analysis
+    # Debugging: Display raw bytes of the file content (first 200 bytes)
+    st.text(f"Raw Bytes (first 200 bytes): {stl_content[:200]}")  # Display first 200 bytes for analysis
     
     # Try decoding with iso-8859-15 (Latin-9) encoding for EBU Swift STL files
     try:
