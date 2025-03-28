@@ -4,8 +4,8 @@ import streamlit as st
 
 def clean_text(text):
     """Remove unwanted control characters and non-printable bytes, including padding sequences."""
-    # Remove unwanted characters like \x8f and other non-printable characters
-    cleaned_text = re.sub(r'[\x00-\x1F\x80-\x9F\x8f\x8aÿ_]+', '', text)  # Remove control characters & unwanted bytes
+    # Remove unwanted characters like \x8f, \x00, and other non-printable characters
+    cleaned_text = re.sub(r'[\x00-\x1F\x80-\x9F\x8f\x8aÿ_&\[\]()!#$%]+', '', text)  # Remove unwanted characters
     return cleaned_text.strip()
 
 def parse_ebu3264_stl(stl_content):
@@ -62,7 +62,8 @@ def write_scc(captions):
         start_scc = timecode_to_scc_format(caption['start'])
         end_scc = timecode_to_scc_format(caption['end'])
         
-        scc_content += f"{start_scc} 942C {caption['text']}\n"
+        # Ensure each subtitle has a clear break
+        scc_content += f"{start_scc} 942C {caption['text']}\n\n"  # Double line break for better readability
     return scc_content
 
 def timecode_to_scc_format(timecode):
