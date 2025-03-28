@@ -1,5 +1,4 @@
 import re
-import os
 import streamlit as st
 
 def convert_timecode(stl_timecode):
@@ -27,10 +26,10 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 
 def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
-    # Known unwanted characters and patterns
+    # List of characters and control sequences to replace with space
     unwanted_chars = [
         '\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C', 'Å', 'é', '\x10', '\x11', '\x12',
-        'X32', 'X12', 'X13', 'X10', # Add other patterns that appear to be from metadata or formatting
+        '\x0B', '\x09', '\x08', '\x0A', '\x0D',  # Control characters like horizontal tab, line feeds
     ]
     for char in unwanted_chars:
         text = text.replace(char, " ")
@@ -38,9 +37,6 @@ def sanitize_text(text):
     # Replace non-printable characters (like ASCII control characters) with space
     text = re.sub(r'[\x00-\x1F\x7F]', ' ', text)  # Replace control characters with space
     
-    # Replace any remaining stray numbers or junk characters
-    text = re.sub(r'[^\x20-\x7E]', ' ', text)  # Keep only printable ASCII characters
-
     # Additional cleanup (remove leading/trailing spaces)
     text = text.strip()
 
@@ -50,12 +46,12 @@ def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
 
-    # Try decoding with Code Page 850 (CP850)
+    # Try decoding with ISO-8859-15 (Latin-9) for EBU Swift STL files
     try:
-        lines = stl_content.decode("cp850", errors="ignore").split("\n")
+        lines = stl_content.decode("iso-8859-15", errors="ignore").split("\n")
     except UnicodeDecodeError:
-        # Fallback to other encodings in case CP850 fails
-        lines = stl_content.decode("latin-1", errors="ignore").split("\n")
+        # Fallback to other encodings in case ISO-8859-15 fails
+        lines = stl_content.decode("iso-8859-1", errors="ignore").split("\n")
     
     # Debugging: Show raw content to understand encoding issues
     st.text("Raw decoded content (first 50 lines):")
