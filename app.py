@@ -25,8 +25,12 @@ def parse_stl(stl_content):
     captions = []
     lines = stl_content.decode("latin-1").split("\n")
     
+    # Debugging: Display first few lines of the file
+    st.text("Preview of STL file:")
+    st.text("\n".join(lines[:10]))
+    
     for line in lines:
-        match = re.match(r'^(\d{2}:\d{2}:\d{2}:\d{2})\s*,\s*(\d{2}:\d{2}:\d{2}:\d{2})\s*(.*)', line)
+        match = re.match(r'^(\d{2}:\d{2}:\d{2}:\d{2})\s*,?\s*(\d{2}:\d{2}:\d{2}:\d{2})\s*(.*)', line)
         if match:
             start, end, text = match.groups()
             start_scc = adjust_frame_rate(convert_timecode(start))
