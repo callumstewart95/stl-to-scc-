@@ -45,6 +45,21 @@ def sanitize_text(text):
     
     return text
 
+def wrap_text_to_31_cpl(text):
+    """Wrap text to fit within 31 Characters Per Line (CPL)."""
+    lines = []
+    while len(text) > 31:
+        # Find the last space within the first 31 characters to split on
+        split_pos = text.rfind(' ', 0, 31)
+        if split_pos == -1:
+            split_pos = 31  # If no space, break at 31 characters
+        lines.append(text[:split_pos])
+        text = text[split_pos:].strip()
+    if text:
+        lines.append(text)
+    
+    return '\n'.join(lines)
+
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
@@ -90,6 +105,9 @@ def parse_stl(stl_content):
             
             # Sanitize the subtitle text to remove unwanted characters
             text = sanitize_text(text)
+            
+            # Wrap text to fit within 31 CPL (Characters Per Line)
+            text = wrap_text_to_31_cpl(text)
             
             if text:  # Only append valid captions
                 captions.append({
