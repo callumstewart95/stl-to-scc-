@@ -2,9 +2,9 @@ import re
 import streamlit as st
 
 def clean_text(text):
-    """Remove unwanted control characters and non-printable bytes."""
-    # Remove non-printable characters and control characters except spaces
-    cleaned_text = re.sub(r'[^\x20-\x7E]', '', text)  # Remove non-printable characters
+    """Remove unwanted control characters and non-printable bytes, including padding sequences."""
+    # Remove non-printable characters and the known unwanted padding bytes like \x8f
+    cleaned_text = re.sub(r'[\x00-\x1F\x80-\x9F\x8f]+', '', text)  # Remove control characters & \x8f sequences
     return cleaned_text.strip()
 
 def parse_stl(stl_content):
