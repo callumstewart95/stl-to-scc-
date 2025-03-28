@@ -2,10 +2,10 @@ import re
 import streamlit as st
 
 def clean_text(text):
-    """Clean the subtitle text by removing unwanted characters."""
-    # Replace non-printable characters (such as 8F) with spaces
-    text = re.sub(r'[\x8F\x00-\x1F\x7F]', ' ', text)  # Remove control characters, 8F byte
-    return text.strip()
+    """Remove unwanted control characters and non-printable bytes."""
+    # Remove non-printable characters and control characters except spaces
+    cleaned_text = re.sub(r'[^\x20-\x7E]', '', text)  # Remove non-printable characters
+    return cleaned_text.strip()
 
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
@@ -14,13 +14,13 @@ def parse_stl(stl_content):
     # Debugging: Display raw bytes of the file content (first 200 bytes)
     st.text(f"Raw Bytes (first 200 bytes): {stl_content[:200]}")  # Display first 200 bytes for analysis
 
-    # Try decoding with iso-8859-15 (Latin-9) encoding for EBU Swift STL files
     try:
+        # Try decoding with iso-8859-15 encoding, as STL files often use this encoding
         lines = stl_content.decode("iso-8859-15", errors="ignore").split("\n")
     except UnicodeDecodeError:
         # Fallback to iso-8859-1 if iso-8859-15 fails
         lines = stl_content.decode("iso-8859-1", errors="ignore").split("\n")
-    
+
     # Debugging: Display lines after decoding
     st.text(f"Decoded lines: {lines[:10]}")  # Show the first 10 decoded lines for inspection
 
@@ -32,34 +32,34 @@ def parse_stl(stl_content):
             if not end:
                 end = start  # Handle missing end timecodes
             
-            # Convert timecodes and apply frame rate adjustment (as before)
-            start_scc = adjust_frame_rate(convert_timecode(start))
-            end_scc = adjust_frame_rate(convert_timecode(end))
-            
-            if not start_scc or not end_scc:
-                continue  # Skip invalid entries
-            
-            control_code = "942C"  # Default: Pop-on
-            if "{RU2}" in text:
-                control_code = "94AD"  # Roll-up 2 lines
-                text = text.replace("{RU2}", "")
-            elif "{RU3}" in text:
-                control_code = "94AE"  # Roll-up 3 lines
-                text = text.replace("{RU3}", "")
-            elif "{RU4}" in text:
-                control_code = "94AF"  # Roll-up 4 lines
-                text = text.replace("{RU4}", "")
-            elif "{PA}" in text:
-                control_code = "9429"  # Paint-on captions
-                text = text.replace("{PA}", "")
-            
             # Clean the subtitle text to remove unwanted characters
             text = clean_text(text)
             
-            # Wrap text to fit within 31 CPL (Characters Per Line)
-            text = wrap_text_to_31_cpl(text)
-            
             if text:  # Only append valid captions
+                # Convert timecodes and apply frame rate adjustment (as before)
+                start_scc = adjust_frame_rate(convert_timecode(start))
+                end_scc = adjust_frame_rate(convert_timecode(end))
+                
+                if not start_scc or not end_scc:
+                    continue  # Skip invalid entries
+                
+                control_code = "942C"  # Default: Pop-on
+                if "{RU2}" in text:
+                    control_code = "94AD"  # Roll-up 2 lines
+                    text = text.replace("{RU2}", "")
+                elif "{RU3}" in text:
+                    control_code = "94AE"  # Roll-up 3 lines
+                    text = text.replace("{RU3}", "")
+                elif "{RU4}" in text:
+                    control_code = "94AF"  # Roll-up 4 lines
+                    text = text.replace("{RU4}", "")
+                elif "{PA}" in text:
+                    control_code = "9429"  # Paint-on captions
+                    text = text.replace("{PA}", "")
+                
+                # Wrap text to fit within 31 CPL (Characters Per Line)
+                text = wrap_text_to_31_cpl(text)
+                
                 captions.append({
                     "start": start_scc,
                     "end": end_scc,
@@ -71,7 +71,6 @@ def parse_stl(stl_content):
         st.error("No captions found. Please check your STL file format.")
     return captions
 
-# Add function to help handle missing captions and empty content in the SCC output
 def write_scc(captions):
     """Generate SCC formatted text."""
     if not captions:
