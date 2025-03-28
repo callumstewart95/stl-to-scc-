@@ -54,8 +54,8 @@ def parse_stl(stl_content):
     except UnicodeDecodeError:
         lines = stl_content.decode("latin-1", errors="ignore").split("\n")
     
-    # Debugging: Display first few lines of the file
-    st.text("Preview of STL file:")
+   # Debugging: Show the first few lines to ensure it's being read properly
+    st.text("Preview of STL file (first 10 lines):")
     st.text("\n".join(lines[:10]))
     
     for line in lines:
