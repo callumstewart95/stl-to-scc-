@@ -26,11 +26,14 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 
 def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
-    # Replace any sequence of spaces (or spaces represented as characters) with a single space
-    text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with a single space
-
-    # Remove any unwanted non-printable or control characters that are often embedded in STL
+    # Remove characters that are outside the printable ASCII range (0x20 to 0x7E)
     text = re.sub(r'[^\x20-\x7E]', '', text)  # Only keep printable ASCII characters
+
+    # Replace multiple spaces with a single space
+    text = re.sub(r'\s+', ' ', text)  # Replace consecutive spaces with a single space
+
+    # Replace specific unwanted characters with a space (for example, ÿ and other odd characters)
+    text = text.replace('ÿ', ' ').replace('', ' ').replace('', ' ')  # Replace specific known bad chars
 
     # Strip leading and trailing spaces
     text = text.strip()
