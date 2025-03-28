@@ -58,8 +58,8 @@ def parse_stl(stl_content):
             lines = stl_content.decode("ISO-8859-1", errors="ignore").split("\n")
     
   # Debugging: Show the first 30 lines to ensure it's being read properly
-    st.text("Preview of STL file (first 30 lines):")
-    st.text("\n".join(lines[:30]))
+    st.text("Preview of STL file (first 10 lines):")
+    st.text("\n".join(lines[:10]))
     
   # Regex to extract the timecodes and text
     for line in lines:
