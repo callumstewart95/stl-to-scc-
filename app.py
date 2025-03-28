@@ -26,21 +26,22 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 
 def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
-    # Remove non-printable characters (ASCII control characters) and known unwanted ones
+    # Define unwanted characters typically found in STL files
     unwanted_chars = [
-        'ÿ', '', '', '', '', '', '', '¨', '¬', '®', 'é', 'è', 'á', '¡', '»'
+        'ÿ', '', 'ÿ', 'è', 'é', 'ò', 'ç', '±', '°', '', 'å', '×', '¬', 'œ', '®', '¼', '', '', '▒', '¦', '•'
     ]
     
+    # Replace unwanted characters with a space
     for char in unwanted_chars:
         text = text.replace(char, ' ')  # Replace unwanted characters with spaces
     
-    # Remove any remaining non-printable characters (outside ASCII printable range)
-    text = re.sub(r'[^\x20-\x7E]', ' ', text)  # Remove anything outside printable ASCII range
+    # Remove any non-printable ASCII characters (those with byte values 0-31 and 127)
+    text = re.sub(r'[^\x20-\x7E]', ' ', text)
     
-    # Replace sequences of spaces with a single space
+    # Replace multiple spaces with a single space
     text = re.sub(r'\s+', ' ', text)
     
-    # Remove leading/trailing spaces
+    # Trim any leading or trailing spaces
     text = text.strip()
     
     return text
@@ -64,11 +65,11 @@ def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
 
-    # Try decoding with ISO-8859-15 (Latin-9) for EBU Swift STL files
+    # Try decoding with iso-8859-15 (Latin-9) encoding for EBU Swift STL files
     try:
         lines = stl_content.decode("iso-8859-15", errors="ignore").split("\n")
     except UnicodeDecodeError:
-        # Fallback to other encodings in case ISO-8859-15 fails
+        # Fallback to iso-8859-1 if iso-8859-15 fails
         lines = stl_content.decode("iso-8859-1", errors="ignore").split("\n")
     
     # Debugging: Show raw content to understand encoding issues
