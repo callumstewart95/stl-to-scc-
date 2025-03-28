@@ -30,9 +30,12 @@ def parse_stl(stl_content):
     st.text("\n".join(lines[:10]))
     
     for line in lines:
-        match = re.match(r'^(\d{2}:\d{2}:\d{2}:\d{2})\s*,?\s*(\d{2}:\d{2}:\d{2}:\d{2})\s*(.+)', line)
+        match = re.match(r'^(\d{2}:\d{2}:\d{2}:\d{2})\s+(-|\d{2}:\d{2}:\d{2}:\d{2})\s+(.*)', line)
         if match:
             start, end, text = match.groups()
+            if end == "-":  # Handle missing end timecodes
+                end = start
+            
             start_scc = adjust_frame_rate(convert_timecode(start))
             end_scc = adjust_frame_rate(convert_timecode(end))
             
@@ -79,3 +82,12 @@ uploaded_file = st.file_uploader("Upload STL File", type=["stl"])
 
 if uploaded_file is not None:
     captions = parse_stl(uploaded_file.read())
+    scc_content = write_scc(captions)
+    
+    if scc_content:
+        st.download_button(
+            label="Download SCC File",
+            data=scc_content,
+            file_name="output.scc",
+            mime="text/plain"
+        )
