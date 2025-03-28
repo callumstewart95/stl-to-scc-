@@ -57,7 +57,7 @@ def parse_stl(stl_content):
       except UnicodeDecodeError:
           try:
             lines = stl_content.decode("latin-1", errors="ignore").split("\n")
-            except UnicodeDecodeError:
+      except UnicodeDecodeError:
                 lines = stl_content.decode("ISO-8859-1", errors="ignore").split("\n")
     
   # Debugging: Show the first 30 lines to ensure it's being read properly
