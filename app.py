@@ -73,7 +73,10 @@ def parse_stl(stl_content):
             elif "{PA}" in text:
                 control_code = "9429"  # Paint-on captions
                 text = text.replace("{PA}", "")
-            
+
+              # Sanitize the subtitle text to remove unwanted characters
+            text = sanitize_text(text)
+          
             captions.append({
                 "start": start_scc,
                 "end": end_scc,
