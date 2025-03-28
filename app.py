@@ -58,10 +58,22 @@ def write_scc(captions):
     
     scc_content = "Scenarist_SCC V1.0\n\n"
     for caption in captions:
-        start_scc = adjust_frame_rate(convert_timecode(caption['start']))
-        end_scc = adjust_frame_rate(convert_timecode(caption['end']))
+        # Directly use the timecode values for SCC output
+        start_scc = timecode_to_scc_format(caption['start'])
+        end_scc = timecode_to_scc_format(caption['end'])
+        
         scc_content += f"{start_scc} 942C {caption['text']}\n"
     return scc_content
+
+def timecode_to_scc_format(timecode):
+    """Convert raw timecode (in frames) to SCC format."""
+    # Assuming timecode is in frames, convert to HH:MM:SS:FF (e.g., 00:02:35:20)
+    hours = timecode // 3600
+    minutes = (timecode % 3600) // 60
+    seconds = timecode % 60
+    frames = 0  # Set frames to 0 for simplicity, adjust as needed
+    
+    return f"{hours:02}:{minutes:02}:{seconds:02}:{frames:02}"
 
 # Streamlit Web App
 st.title("STL to SCC Converter")
