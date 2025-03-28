@@ -4,11 +4,16 @@ import streamlit as st
 
 def convert_timecode(stl_timecode):
     """Convert STL timecode (HH:MM:SS:FF) to SCC format (HH:MM:SS;FF)."""
-    hours, minutes, seconds, frames = map(int, stl_timecode.split(':'))
+    parts = stl_timecode.split(':')
+    if len(parts) != 4:
+        return None  # Invalid format
+    hours, minutes, seconds, frames = map(int, parts)
     return f"{hours:02}:{minutes:02}:{seconds:02};{frames:02}"
 
 def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
     """Convert timecode frame rates (e.g., 25fps -> 29.97fps)."""
+    if not timecode:
+        return None
     hours, minutes, seconds, frames = map(int, timecode.split(';'))
     total_frames = ((hours * 3600 + minutes * 60 + seconds) * source_fps) + frames
     adjusted_frames = round(total_frames * (target_fps / source_fps))
@@ -30,14 +35,17 @@ def parse_stl(stl_content):
     st.text("\n".join(lines[:10]))
     
     for line in lines:
-        match = re.match(r'^(\d{2}:\d{2}:\d{2}:\d{2})\s+(-|\d{2}:\d{2}:\d{2}:\d{2})\s+(.+)$', line.strip())
+        match = re.search(r'(\d{2}:\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2}:\d{2}:\d{2})?\s*(.*)', line.strip())
         if match:
             start, end, text = match.groups()
-            if end == "-":  # Handle missing end timecodes
-                end = start
+            if not end:
+                end = start  # Handle missing end timecodes
             
             start_scc = adjust_frame_rate(convert_timecode(start))
             end_scc = adjust_frame_rate(convert_timecode(end))
+            
+            if not start_scc or not end_scc:
+                continue  # Skip invalid entries
             
             control_code = "942C"  # Default: Pop-on
             if "{RU2}" in text:
