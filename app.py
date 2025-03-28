@@ -27,21 +27,27 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 
 def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
-    # Remove non-printable characters, including control characters
-    text = ''.join(char for char in text if char.isprintable())
-    
-    # Replace specific unwanted characters with spaces or remove them
-    text = text.replace("", " ").replace("ÿ", "").strip()
-    
-    # Handle common "garbage" characters (these are often control characters)
-    text = re.sub(r'[\x00-\x1F\x7F]', '', text)  # Remove non-printable/control characters
-    
+    # Strip unwanted characters (non-printable, including control characters)
+    # First, remove known problematic characters like "ÿ", etc.
+    text = text.replace("ÿ", "").replace("", " ").strip()
+
+    # Now, remove all control characters (ASCII 0-31, and 127)
+    text = re.sub(r'[\x00-\x1F\x7F]', '', text)
+
+    # Remove any non-printable characters, keeping only text that is visible
+    text = ''.join(c for c in text if c.isprintable())
+
     return text
 
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
-    lines = stl_content.decode("latin-1", errors="ignore").replace("", " ").split("\n")
+   
+    # Decode the content and handle potential unwanted encoding
+    try:
+        lines = stl_content.decode("utf-8", errors="ignore").split("\n")
+    except UnicodeDecodeError:
+        lines = stl_content.decode("latin-1", errors="ignore").split("\n")
     
     # Debugging: Display first few lines of the file
     st.text("Preview of STL file:")
