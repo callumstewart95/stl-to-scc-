@@ -35,7 +35,7 @@ def sanitize_text(text):
     text = re.sub(r'[\x00-\x1F\x7F]', '', text)
 
    # Remove specific unwanted characters like , , ,  (add more if needed)
-    unwanted_chars = ['\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C']
+    unwanted_chars = ['\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C', 'Å', 'é']
     for char in unwanted_chars:
         text = text.replace(char, " ")
 
