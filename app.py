@@ -5,7 +5,7 @@ import streamlit as st
 def clean_text(text):
     """Remove unwanted control characters and non-printable bytes, including padding sequences."""
     # Remove unwanted characters like \x8f and other non-printable characters
-    cleaned_text = re.sub(r'[\x00-\x1F\x80-\x9F\x8f\x8a]+', '', text)  # Remove control characters & unwanted bytes
+    cleaned_text = re.sub(r'[\x00-\x1F\x80-\x9F\x8f\x8aÿ_]+', '', text)  # Remove control characters & unwanted bytes
     return cleaned_text.strip()
 
 def parse_ebu3264_stl(stl_content):
