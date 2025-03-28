@@ -10,10 +10,10 @@ def clean_text(text):
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
-    
+
     # Debugging: Display raw bytes of the file content (first 200 bytes)
     st.text(f"Raw Bytes (first 200 bytes): {stl_content[:200]}")  # Display first 200 bytes for analysis
-    
+
     # Try decoding with iso-8859-15 (Latin-9) encoding for EBU Swift STL files
     try:
         lines = stl_content.decode("iso-8859-15", errors="ignore").split("\n")
@@ -68,6 +68,17 @@ def parse_stl(stl_content):
         st.error("No captions found. Please check your STL file format.")
     return captions
 
+# Add function to help handle missing captions and empty content in the SCC output
+def write_scc(captions):
+    """Generate SCC formatted text."""
+    if not captions:
+        return ""  # Return empty if no captions found
+    
+    scc_content = "Scenarist_SCC V1.0\n\n"
+    for caption in captions:
+        scc_content += f"{caption['start']} {caption['control_code']} {caption['text']}\n"
+    return scc_content
+
 # Streamlit Web App
 st.title("STL to SCC Converter")
 uploaded_file = st.file_uploader("Upload STL File", type=["stl"])
@@ -75,12 +86,14 @@ uploaded_file = st.file_uploader("Upload STL File", type=["stl"])
 if uploaded_file is not None:
     stl_content = uploaded_file.read()
     captions = parse_stl(stl_content)
-    scc_content = write_scc(captions)
     
-    if scc_content:
+    if captions:  # Check if captions exist before trying to write the SCC file
+        scc_content = write_scc(captions)
         st.download_button(
             label="Download SCC File",
             data=scc_content,
             file_name="output.scc",
             mime="text/plain"
         )
+    else:
+        st.warning("No valid captions found. Please check the STL file format.")
