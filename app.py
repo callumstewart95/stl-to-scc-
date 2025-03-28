@@ -1,64 +1,20 @@
 import re
 import streamlit as st
 
-def convert_timecode(stl_timecode):
-    """Convert STL timecode (HH:MM:SS:FF) to SCC format (HH:MM:SS;FF)."""
-    parts = stl_timecode.split(':')
-    if len(parts) != 4:
-        return None  # Invalid format
-    hours, minutes, seconds, frames = map(int, parts)
-    return f"{hours:02}:{minutes:02}:{seconds:02};{frames:02}"
-
-def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
-    """Convert timecode frame rates (e.g., 25fps -> 29.97fps)."""
-    if not timecode:
-        return None
-    hours, minutes, seconds, frames = map(int, timecode.split(';'))
-    total_frames = ((hours * 3600 + minutes * 60 + seconds) * source_fps) + frames
-    adjusted_frames = round(total_frames * (target_fps / source_fps))
-    new_hours = adjusted_frames // (3600 * target_fps)
-    remaining = adjusted_frames % (3600 * target_fps)
-    new_minutes = remaining // (60 * target_fps)
-    remaining = remaining % (60 * target_fps)
-    new_seconds = remaining // target_fps
-    new_frames = remaining % target_fps
-    return f"{new_hours:02}:{new_minutes:02}:{new_seconds:02};{new_frames:02}"
-
-def sanitize_text(text):
-    """Remove unwanted characters and control characters from the text."""
-    # Remove characters that are outside the printable ASCII range (0x20 to 0x7E)
-    text = re.sub(r'[^\x20-\x7E]', '', text)  # Only keep printable ASCII characters
-
-    # Replace multiple spaces with a single space
-    text = re.sub(r'\s+', ' ', text)  # Replace consecutive spaces with a single space
-
-    # Replace specific unwanted characters with a space (for example, ÿ and other odd characters)
-    text = text.replace('ÿ', ' ').replace('', ' ').replace('', ' ')  # Replace specific known bad chars
-
-    # Strip leading and trailing spaces
-    text = text.strip()
-    
-    return text
-
-def wrap_text_to_31_cpl(text):
-    """Wrap text to fit within 31 Characters Per Line (CPL)."""
-    lines = []
-    while len(text) > 31:
-        # Find the last space within the first 31 characters to split on
-        split_pos = text.rfind(' ', 0, 31)
-        if split_pos == -1:
-            split_pos = 31  # If no space, break at 31 characters
-        lines.append(text[:split_pos])
-        text = text[split_pos:].strip()
-    if text:
-        lines.append(text)
-    
-    return '\n'.join(lines)
+def clean_text(text):
+    """Clean the subtitle text by removing unwanted characters."""
+    # Replace non-printable characters (such as 8F) with spaces
+    text = re.sub(r'[\x8F\x00-\x1F\x7F]', ' ', text)  # Remove control characters, 8F byte
+    return text.strip()
 
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
-
+    
+    # Debugging: Display raw bytes of the file content
+    st.text("Raw Bytes (first 200 bytes):")
+    st.text(view_raw_bytes(stl_content))  # Show raw bytes for analysis
+    
     # Try decoding with iso-8859-15 (Latin-9) encoding for EBU Swift STL files
     try:
         lines = stl_content.decode("iso-8859-15", errors="ignore").split("\n")
@@ -66,10 +22,6 @@ def parse_stl(stl_content):
         # Fallback to iso-8859-1 if iso-8859-15 fails
         lines = stl_content.decode("iso-8859-1", errors="ignore").split("\n")
     
-    # Debugging: Show raw content to understand encoding issues
-    st.text("Raw decoded content (first 50 lines):")
-    st.text("\n".join(lines[:50]))  # Show more lines for deeper inspection
-
     # Regex to extract the timecodes and text
     for line in lines:
         match = re.search(r'(\d{2}:\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2}:\d{2}:\d{2})?\s*(.*)', line.strip())
@@ -78,6 +30,7 @@ def parse_stl(stl_content):
             if not end:
                 end = start  # Handle missing end timecodes
             
+            # Convert timecodes and apply frame rate adjustment (as before)
             start_scc = adjust_frame_rate(convert_timecode(start))
             end_scc = adjust_frame_rate(convert_timecode(end))
             
@@ -98,8 +51,8 @@ def parse_stl(stl_content):
                 control_code = "9429"  # Paint-on captions
                 text = text.replace("{PA}", "")
             
-            # Sanitize the subtitle text to remove unwanted characters
-            text = sanitize_text(text)
+            # Clean the subtitle text to remove unwanted characters
+            text = clean_text(text)
             
             # Wrap text to fit within 31 CPL (Characters Per Line)
             text = wrap_text_to_31_cpl(text)
@@ -116,22 +69,13 @@ def parse_stl(stl_content):
         st.error("No captions found. Please check your STL file format.")
     return captions
 
-def write_scc(captions):
-    """Generate SCC formatted text."""
-    if not captions:
-        return ""  # Return empty if no captions found
-    
-    scc_content = "Scenarist_SCC V1.0\n\n"
-    for caption in captions:
-        scc_content += f"{caption['start']} {caption['control_code']} {caption['text']}\n"
-    return scc_content
-
 # Streamlit Web App
 st.title("STL to SCC Converter")
 uploaded_file = st.file_uploader("Upload STL File", type=["stl"])
 
 if uploaded_file is not None:
-    captions = parse_stl(uploaded_file.read())
+    stl_content = uploaded_file.read()
+    captions = parse_stl(stl_content)
     scc_content = write_scc(captions)
     
     if scc_content:
