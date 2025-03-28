@@ -26,7 +26,15 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 
 def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
-    # Remove non-printable characters (ASCII control characters)
+    # Remove non-printable characters (ASCII control characters) and known unwanted ones
+    unwanted_chars = [
+        'ÿ', '', '', '', '', '', '', '¨', '¬', '®', 'é', 'è', 'á', '¡', '»'
+    ]
+    
+    for char in unwanted_chars:
+        text = text.replace(char, ' ')  # Replace unwanted characters with spaces
+    
+    # Remove any remaining non-printable characters (outside ASCII printable range)
     text = re.sub(r'[^\x20-\x7E]', ' ', text)  # Remove anything outside printable ASCII range
     
     # Replace sequences of spaces with a single space
