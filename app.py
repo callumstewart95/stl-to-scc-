@@ -21,6 +21,9 @@ def parse_stl(stl_content):
         # Fallback to iso-8859-1 if iso-8859-15 fails
         lines = stl_content.decode("iso-8859-1", errors="ignore").split("\n")
     
+    # Debugging: Display lines after decoding
+    st.text(f"Decoded lines: {lines[:10]}")  # Show the first 10 decoded lines for inspection
+
     # Regex to extract the timecodes and text
     for line in lines:
         match = re.search(r'(\d{2}:\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2}:\d{2}:\d{2})?\s*(.*)', line.strip())
@@ -85,6 +88,7 @@ uploaded_file = st.file_uploader("Upload STL File", type=["stl"])
 
 if uploaded_file is not None:
     stl_content = uploaded_file.read()
+    st.text(f"Raw Bytes (first 200 bytes): {stl_content[:200]}")  # Show raw bytes again for debugging
     captions = parse_stl(stl_content)
     
     if captions:  # Check if captions exist before trying to write the SCC file
