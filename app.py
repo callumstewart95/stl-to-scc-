@@ -26,23 +26,15 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 
 def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
-    # List of characters and control sequences to replace with space
-    unwanted_chars = [
-        '\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C', 'Å', 'é', '\x10', '\x11', '\x12',
-        '\x0B', '\x09', '\x08', '\x0A', '\x0D', '',  # Control characters like horizontal tab, line feeds
-    ]
-    for char in unwanted_chars:
-        text = text.replace(char, " ")
-
-    # Replace non-printable characters (like ASCII control characters) with space
-    text = re.sub(r'[\x00-\x1F\x7F]', ' ', text)  # Replace control characters with space
+    # Remove non-printable characters (ASCII control characters)
+    text = re.sub(r'[^\x20-\x7E]', ' ', text)  # Remove anything outside printable ASCII range
     
-    # Additional cleanup (remove leading/trailing spaces)
-    text = text.strip()
-
-    # Replace any sequence of spaces with a single space
+    # Replace sequences of spaces with a single space
     text = re.sub(r'\s+', ' ', text)
-
+    
+    # Remove leading/trailing spaces
+    text = text.strip()
+    
     return text
 
 def parse_stl(stl_content):
