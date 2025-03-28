@@ -25,10 +25,16 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
     new_frames = remaining % target_fps
     return f"{new_hours:02}:{new_minutes:02}:{new_seconds:02};{new_frames:02}"
 
+def remove_unwanted_characters(text):
+    """Remove unwanted control characters and replace them with spaces."""
+    # Remove non-printable characters using regular expression
+    text = re.sub(r'[^\x20-\x7E]', ' ', text)  # Only keep printable ASCII characters
+    return text
+
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
-    lines = stl_content.decode("latin-1", errors="ignore").replace("", " ").split("\n")
+    lines = stl_content.decode("latin-1", errors="ignore").split("\n")
     
     # Debugging: Display first few lines of the file
     st.text("Preview of STL file:")
@@ -60,6 +66,9 @@ def parse_stl(stl_content):
             elif "{PA}" in text:
                 control_code = "9429"  # Paint-on captions
                 text = text.replace("{PA}", "")
+            
+            # Remove unwanted characters from text
+            text = remove_unwanted_characters(text)
             
             captions.append({
                 "start": start_scc,
