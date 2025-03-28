@@ -29,7 +29,7 @@ def sanitize_text(text):
     # List of characters and control sequences to replace with space
     unwanted_chars = [
         '\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C', 'Å', 'é', '\x10', '\x11', '\x12',
-        '\x0B', '\x09', '\x08', '\x0A', '\x0D',  # Control characters like horizontal tab, line feeds
+        '\x0B', '\x09', '\x08', '\x0A', '\x0D', '',  # Control characters like horizontal tab, line feeds
     ]
     for char in unwanted_chars:
         text = text.replace(char, " ")
@@ -39,6 +39,9 @@ def sanitize_text(text):
     
     # Additional cleanup (remove leading/trailing spaces)
     text = text.strip()
+
+    # Replace any sequence of spaces with a single space
+    text = re.sub(r'\s+', ' ', text)
 
     return text
 
