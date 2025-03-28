@@ -27,20 +27,22 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 
 def sanitize_text(text):
     """Remove unwanted characters and control characters from the text."""
-    # Strip unwanted characters (non-printable, including control characters)
-    # First, remove known problematic characters like "ÿ", etc.
-    text = text.replace("ÿ", "").replace("", " ").strip()
-
-    # Replace non-printable characters (like ASCII control characters) with space
-    text = re.sub(r'[\x00-\x1F\x7F]', ' ', text)  # Replace control characters with space
-
-    # Remove specific unwanted characters like , , ,  (add more if needed)
-    unwanted_chars = ['\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C', 'Å', 'é']
+    # Known unwanted characters and patterns
+    unwanted_chars = [
+        '\x16', '\x01', '\x0e', '\x11', '\x00', 'ÿ', '', '\x0C', 'Å', 'é', '\x10', '\x11', '\x12', 
+        'X32', 'X12', 'X13', 'X10'  # Add other patterns that appear to be from metadata or formatting
+    ]
     for char in unwanted_chars:
         text = text.replace(char, " ")
 
-    # Remove any non-printable characters, keeping only text that is visible
-    text = ''.join(c for c in text if c.isprintable())
+    # Replace non-printable characters (like ASCII control characters) with space
+    text = re.sub(r'[\x00-\x1F\x7F]', ' ', text)  # Replace control characters with space
+    
+    # Replace any remaining stray numbers or junk characters
+    text = re.sub(r'[^\x20-\x7E]', ' ', text)  # Keep only printable ASCII characters
+
+    # Additional cleanup (remove leading/trailing spaces)
+    text = text.strip()
 
     return text
 
