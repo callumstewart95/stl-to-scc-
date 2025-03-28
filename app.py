@@ -26,7 +26,7 @@ def parse_stl(stl_content):
     lines = stl_content.decode("latin-1").split("\n")
     
     for line in lines:
-        match = re.match(r'(\d{2}:\d{2}:\d{2}:\d{2}) , (\d{2}:\d{2}:\d{2}:\d{2}) (.*)', line)
+        match = re.match(r'^(\d{2}:\d{2}:\d{2}:\d{2})\s*,\s*(\d{2}:\d{2}:\d{2}:\d{2})\s*(.*)', line)
         if match:
             start, end, text = match.groups()
             start_scc = adjust_frame_rate(convert_timecode(start))
@@ -53,10 +53,15 @@ def parse_stl(stl_content):
                 "control_code": control_code
             })
     
+    if not captions:
+        st.error("No captions found. Please check your STL file format.")
     return captions
 
 def write_scc(captions):
     """Generate SCC formatted text."""
+    if not captions:
+        return ""  # Return empty if no captions found
+    
     scc_content = "Scenarist_SCC V1.0\n\n"
     for caption in captions:
         scc_content += f"{caption['start']} {caption['control_code']} {caption['text']}\n"
@@ -70,9 +75,10 @@ if uploaded_file is not None:
     captions = parse_stl(uploaded_file.read())
     scc_content = write_scc(captions)
     
-    st.download_button(
-        label="Download SCC File",
-        data=scc_content,
-        file_name="output.scc",
-        mime="text/plain"
-    )
+    if scc_content:
+        st.download_button(
+            label="Download SCC File",
+            data=scc_content,
+            file_name="output.scc",
+            mime="text/plain"
+        )
