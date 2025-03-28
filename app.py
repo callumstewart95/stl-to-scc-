@@ -28,7 +28,7 @@ def adjust_frame_rate(timecode, source_fps=25, target_fps=29.97):
 def parse_stl(stl_content):
     """Extract timecodes, captions, and metadata from STL file content."""
     captions = []
-    lines = stl_content.decode("latin-1", errors="ignore").split("\n")
+    lines = stl_content.decode("latin-1", errors="ignore").replace("", " ").split("\n")
     
     # Debugging: Display first few lines of the file
     st.text("Preview of STL file:")
