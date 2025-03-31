@@ -4,7 +4,9 @@ import re
 
 def convert_timecode(tc_bytes):
     hh, mm, ss, ff = struct.unpack('BBBB', tc_bytes)
-    return f"{hh:02}:{mm:02}:{ss:02};{ff:02}"
+    frame_rate = 25  # Assuming PAL format
+    frames = (ff * 1000) // frame_rate  # Convert frames to milliseconds equivalent
+    return f"{hh:02}:{mm:02}:{ss:02};{frames:02}"
 
 def clean_text(text):
     text = text.replace('\x8f', '').replace('\x8a', ' ')  # Remove unwanted characters
@@ -48,7 +50,7 @@ def write_scc(subtitles):
     for sub in subtitles:
         start_time = sub['start']
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 {scc_text} 942C 942C 942F 942F\n")
+        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
@@ -56,6 +58,7 @@ st.title("STL to SCC Converter")
 uploaded_file = st.file_uploader("Upload EBU STL File", type="stl")
 
 if uploaded_file:
+    st.download_button(label="Download SCC File", data="", file_name="output.scc", mime="text/plain", key="download_scc")
     st.success("File uploaded successfully!")
     st.text(f"File Name: {uploaded_file.name}")
     file_content = uploaded_file.read()
