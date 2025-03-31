@@ -41,7 +41,7 @@ def parse_stl(file_content):
 
 def text_to_scc_hex(text):
     hex_map = {
-        "A": "c141", "B": "c142", "C": "c143", "D": "c144", "E": "c145", "F": "c146", "G": "c147", "H": "c148", "I": "c149", "J": "c14a", "K": "c14b", "L": "c14c", "M": "c14d", "N": "c14e", "O": "c14f", "P": "c150", "Q": "c151", "R": "c152", "S": "c153", "T": "c154", "U": "c155", "V": "c156", "W": "c157", "X": "c158", "Y": "c159", "Z": "c15a", " ": "20"
+        "A": "97A1", "B": "97A2", "C": "97A3", "D": "97A4", "E": "97A5", "F": "97A6", "G": "97A7", "H": "97A8", "I": "97A9", "J": "97AA", "K": "97AB", "L": "97AC", "M": "97AD", "N": "97AE", "O": "97AF", "P": "97B0", "Q": "97B1", "R": "97B2", "S": "97B3", "T": "97B4", "U": "97B5", "V": "97B6", "W": "97B7", "X": "97B8", "Y": "97B9", "Z": "97BA", " ": "20"
     }
     return " ".join([hex_map.get(char.upper(), "20") for char in text])
 
@@ -50,7 +50,7 @@ def write_scc(subtitles):
     for sub in subtitles:
         start_time = sub['start']
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
+        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
@@ -58,7 +58,6 @@ st.title("STL to SCC Converter")
 uploaded_file = st.file_uploader("Upload EBU STL File", type="stl")
 
 if uploaded_file:
-    st.download_button(label="Download SCC File", data="", file_name="output.scc", mime="text/plain", key="download_scc")
     st.success("File uploaded successfully!")
     st.text(f"File Name: {uploaded_file.name}")
     file_content = uploaded_file.read()
@@ -67,6 +66,6 @@ if uploaded_file:
     if subtitles:
         st.success("Subtitles extracted successfully!")
         scc_content = write_scc(subtitles)
-        st.download_button(label="Download SCC File", data=scc_content, file_name="output.scc", mime="text/plain", key="download_scc")
+        st.download_button(label="Download SCC File", data=scc_content, file_name="output.scc", mime="text/plain")
     else:
         st.error("No subtitles found in the STL file!")
