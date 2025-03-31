@@ -1,9 +1,15 @@
 import streamlit as st
 import struct
+import re
 
 def convert_timecode(tc_bytes):
     hh, mm, ss, ff = struct.unpack('BBBB', tc_bytes)
     return f"{hh:02}:{mm:02}:{ss:02};{ff:02}"
+
+def clean_text(text):
+    text = text.replace('\x8f', '').replace('\x8a', ' ')  # Remove unwanted characters
+    text = re.sub(r'[^\x20-\x7E]', '', text)  # Keep only printable ASCII characters
+    return text.strip()
 
 def parse_stl(file_content):
     st.text(f"Raw Data (First 500 bytes): {file_content[:500]}")
@@ -22,7 +28,7 @@ def parse_stl(file_content):
         block = tti_blocks[i * block_size : (i + 1) * block_size]
         start_tc = convert_timecode(block[5:9])
         end_tc = convert_timecode(block[10:14])
-        text = block[16:].decode('latin-1').strip()
+        text = clean_text(block[16:].decode('latin-1'))
         
         st.text(f"Decoded Line {i}: {text}")
         
