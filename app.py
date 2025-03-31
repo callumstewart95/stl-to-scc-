@@ -32,7 +32,9 @@ def parse_stl(file_content):
     return subtitles
 
 def text_to_scc_hex(text):
-    hex_map = {"A": "c141", "B": "c142", "C": "c143", "D": "c144", "E": "c145", "F": "c146", "G": "c147", "H": "c148", "I": "c149", "J": "c14a", "K": "c14b", "L": "c14c", "M": "c14d", "N": "c14e", "O": "c14f", "P": "c150", "Q": "c151", "R": "c152", "S": "c153", "T": "c154", "U": "c155", "V": "c156", "W": "c157", "X": "c158", "Y": "c159", "Z": "c15a", " ": "20"}
+    hex_map = {
+        "A": "1421", "B": "1422", "C": "1423", "D": "1424", "E": "1425", "F": "1426", "G": "1427", "H": "1428", "I": "1429", "J": "142A", "K": "142B", "L": "142C", "M": "142D", "N": "142E", "O": "142F", "P": "1430", "Q": "1431", "R": "1432", "S": "1433", "T": "1434", "U": "1435", "V": "1436", "W": "1437", "X": "1438", "Y": "1439", "Z": "143A", " ": "20"
+    }
     return " ".join([hex_map.get(char.upper(), "20") for char in text])
 
 def write_scc(subtitles):
@@ -40,7 +42,7 @@ def write_scc(subtitles):
     for sub in subtitles:
         start_time = sub['start']
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 9420 94f4 94f4 {scc_text} 942c 942c 942f 942f\n")
+        scc_lines.append(f"{start_time}\t9420 94F4 {scc_text} 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
