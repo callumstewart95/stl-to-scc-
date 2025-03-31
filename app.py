@@ -39,16 +39,17 @@ def parse_stl(file_content):
 
 def text_to_scc_hex(text):
     hex_map = {
-        "A": "1421", "B": "1422", "C": "1423", "D": "1424", "E": "1425", "F": "1426", "G": "1427", "H": "1428", "I": "1429", "J": "142A", "K": "142B", "L": "142C", "M": "142D", "N": "142E", "O": "142F", "P": "1430", "Q": "1431", "R": "1432", "S": "1433", "T": "1434", "U": "1435", "V": "1436", "W": "1437", "X": "1438", "Y": "1439", "Z": "143A", " ": "20"
+        "A": "1421", "B": "1422", "C": "1423", "D": "1424", "E": "1425", "F": "1426", "G": "1427", "H": "1428", "I": "1429", "J": "142A", "K": "142B", "L": "142C", "M": "142D", "N": "142E", "O": "142F", "P": "1430", "Q": "1431", "R": "1432", "S": "1433", "T": "1434", "U": "1435", "V": "1436", "W": "1437", "X": "1438", "Y": "1439", "Z": "143A", " ": "20",
+        "a": "1421", "b": "1422", "c": "1423", "d": "1424", "e": "1425", "f": "1426", "g": "1427", "h": "1428", "i": "1429", "j": "142A", "k": "142B", "l": "142C", "m": "142D", "n": "142E", "o": "142F", "p": "1430", "q": "1431", "r": "1432", "s": "1433", "t": "1434", "u": "1435", "v": "1436", "w": "1437", "x": "1438", "y": "1439", "z": "143A"
     }
-    return " ".join([hex_map.get(char.upper(), "20") for char in text])
+    return " ".join([hex_map.get(char, "20") for char in text])
 
 def write_scc(subtitles):
     scc_lines = ["Scenarist_SCC V1.0\n"]
     for sub in subtitles:
         start_time = sub['start']
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 94F4 {scc_text} 942F\n")
+        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
