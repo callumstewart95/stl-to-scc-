@@ -53,6 +53,9 @@ def write_scc(subtitles):
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
+
+st.download_button(label="Download SCC File", data="", file_name="output.scc", mime="text/plain", key="download_scc")
+
 uploaded_file = st.file_uploader("Upload EBU STL File", type="stl")
 
 if uploaded_file:
@@ -64,6 +67,6 @@ if uploaded_file:
     if subtitles:
         st.success("Subtitles extracted successfully!")
         scc_content = write_scc(subtitles)
-        st.download_button(label="Download SCC File", data=scc_content, file_name="output.scc", mime="text/plain")
+        st.download_button(label="Download SCC File", data=scc_content, file_name="output.scc", mime="text/plain", key="download_scc_updated")
     else:
         st.error("No subtitles found in the STL file!")
