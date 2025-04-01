@@ -38,16 +38,18 @@ def parse_stl(file_content):
 
 def text_to_scc_hex(text):
     eia608_map = {
-        "A": "C141", "B": "C142", "C": "C143", "D": "C144", "E": "C145", "F": "C146", "G": "C147", "H": "C148", "I": "C149", "J": "C14A", "K": "C14B", "L": "C14C", "M": "C14D", "N": "C14E", "O": "C14F", "P": "C150", "Q": "C151", "R": "C152", "S": "C153", "T": "C154", "U": "C155", "V": "C156", "W": "C157", "X": "C158", "Y": "C159", "Z": "C15A", " ": "20"
+        "A": "41", "B": "42", "C": "43", "D": "44", "E": "45", "F": "46", "G": "47", "H": "48", "I": "49", "J": "4A", "K": "4B", "L": "4C", "M": "4D", "N": "4E", "O": "4F", "P": "50", "Q": "51", "R": "52", "S": "53", "T": "54", "U": "55", "V": "56", "W": "57", "X": "58", "Y": "59", "Z": "5A", " ": "20"
     }
-    return " ".join([eia608_map.get(char.upper(), "20") for char in text])
+    hex_pairs = [eia608_map.get(char.upper(), "20") for char in text]
+    grouped_hex = [hex_pairs[i] + hex_pairs[i + 1] if i + 1 < len(hex_pairs) else hex_pairs[i] + "20" for i in range(0, len(hex_pairs), 2)]
+    return " ".join(grouped_hex)
 
 def write_scc(subtitles):
     scc_lines = ["Scenarist_SCC V1.0\n"]
     for sub in subtitles:
-        start_time = sub['start'].replace(':', ':', 1)  # Ensure proper format
+        start_time = sub['start']
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 9420 91D0 91D0 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
+        scc_lines.append(f"{start_time}\t9420 9420 91D0 91D0 97A2 97A2 {scc_text} 8080 8080 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
