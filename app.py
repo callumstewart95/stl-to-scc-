@@ -5,8 +5,7 @@ import re
 def convert_timecode(tc_bytes):
     hh, mm, ss, ff = struct.unpack('BBBB', tc_bytes)
     frame_rate = 25  # Assuming PAL format
-    frames = int((ff / 25) * 40)  # Convert to SCC-compatible frame numbering
-    return f"{hh:02}:{mm:02}:{ss:02}:{frames:02}"
+    return f"{hh:02}:{mm:02}:{ss:02};{ff:02}"
 
 def clean_text(text):
     text = text.replace('\x8f', '').replace('\x8a', ' ')  # Remove unwanted characters
@@ -15,7 +14,7 @@ def clean_text(text):
 
 def parse_stl(file_content):
     header = file_content[:1024]
-    if not header.startswith(b'850STL') and not header.startswith(b'437STL'):
+    if not (header.startswith(b'850STL') or header.startswith(b'437STL')):
         st.error("Invalid STL header! Not an EBU 3264 STL file.")
         return []
     
@@ -26,12 +25,14 @@ def parse_stl(file_content):
     
     for i in range(num_blocks):
         block = tti_blocks[i * block_size : (i + 1) * block_size]
+        if len(block) < block_size:
+            continue
+        
         start_tc = convert_timecode(block[5:9])
-        end_tc = convert_timecode(block[10:14])
         text = clean_text(block[16:].decode('latin-1'))
         
         if text:
-            subtitles.append({"start": start_tc, "end": end_tc, "text": text})
+            subtitles.append({"start": start_tc, "text": text})
     
     return subtitles
 
@@ -46,7 +47,7 @@ def write_scc(subtitles):
     for sub in subtitles:
         start_time = sub['start']
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
+        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
@@ -54,6 +55,7 @@ st.title("STL to SCC Converter")
 uploaded_file = st.file_uploader("Upload EBU STL File", type="stl")
 
 if uploaded_file:
+    st.download_button(label="Download SCC File", data="", file_name="output.scc", mime="text/plain", key="download_scc")
     st.success("File uploaded successfully!")
     st.text(f"File Name: {uploaded_file.name}")
     file_content = uploaded_file.read()
@@ -62,6 +64,6 @@ if uploaded_file:
     if subtitles:
         st.success("Subtitles extracted successfully!")
         scc_content = write_scc(subtitles)
-        st.download_button(label="Download SCC File", data=scc_content, file_name="output.scc", mime="text/plain", key="download_scc")
+        st.download_button(label="Download SCC File", data=scc_content, file_name="output.scc", mime="text/plain", key="download_scc_content")
     else:
         st.error("No subtitles found in the STL file!")
