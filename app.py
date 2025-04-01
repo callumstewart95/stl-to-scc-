@@ -50,7 +50,7 @@ def text_to_scc_hex(text):
 def write_scc(subtitles):
     scc_lines = ["Scenarist_SCC V1.0\n"]
     for sub in subtitles:
-        start_time = sub['start'].replace(';', ':')  # Ensure SCC timecode format
+        start_time = sub['start'].replace(':', ':')  # Ensure SCC timecode format
         scc_text = text_to_scc_hex(sub['text'])
         scc_lines.append(f"{start_time}\t9420 9420 91D0 91D0 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
