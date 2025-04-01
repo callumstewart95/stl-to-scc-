@@ -5,6 +5,8 @@ import re
 def convert_timecode(tc_bytes):
     hh, mm, ss, ff = struct.unpack('BBBB', tc_bytes)
     frame_rate = 25  # Assuming PAL format
+    frames_per_sec = 1000 / (frame_rate * 40)
+    ff = int(ff * frames_per_sec)
     return f"{hh:02}:{mm:02}:{ss:02}:{ff:02}"
 
 def clean_text(text):
@@ -47,9 +49,9 @@ def text_to_scc_hex(text):
 def write_scc(subtitles):
     scc_lines = ["Scenarist_SCC V1.0\n"]
     for sub in subtitles:
-        start_time = sub['start']
+        start_time = sub['start'].replace(';', ':')  # Ensure SCC timecode format
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 9420 91D0 91D0 97A2 97A2 {scc_text} 8080 8080 942C 942C 942F 942F\n")
+        scc_lines.append(f"{start_time}\t9420 9420 91D0 91D0 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
