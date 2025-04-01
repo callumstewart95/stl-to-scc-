@@ -5,8 +5,7 @@ import re
 def convert_timecode(tc_bytes):
     hh, mm, ss, ff = struct.unpack('BBBB', tc_bytes)
     frame_rate = 25  # Assuming PAL format
-    frames = int((ff / frame_rate) * 100)
-    return f"{hh:02}:{mm:02}:{ss:02}:{frames:02}"
+    return f"{hh:02}:{mm:02}:{ss:02}:{ff:02}"
 
 def clean_text(text):
     text = text.replace('\x8f', '').replace('\x8a', ' ')  # Remove unwanted characters
@@ -38,20 +37,21 @@ def parse_stl(file_content):
     return subtitles
 
 def text_to_scc_hex(text):
-    hex_map = {
-        "A": "41", "B": "42", "C": "43", "D": "44", "E": "45", "F": "46", "G": "47", "H": "48", "I": "49", "J": "4A", "K": "4B", "L": "4C", "M": "4D", "N": "4E", "O": "4F", "P": "50", "Q": "51", "R": "52", "S": "53", "T": "54", "U": "55", "V": "56", "W": "57", "X": "58", "Y": "59", "Z": "5A", " ": "20"
+    eia608_map = {
+        "A": "C141", "B": "C142", "C": "C143", "D": "C144", "E": "C145", "F": "C146", "G": "C147", "H": "C148", "I": "C149", "J": "C14A", "K": "C14B", "L": "C14C", "M": "C14D", "N": "C14E", "O": "C14F", "P": "C150", "Q": "C151", "R": "C152", "S": "C153", "T": "C154", "U": "C155", "V": "C156", "W": "C157", "X": "C158", "Y": "C159", "Z": "C15A", " ": "20"
     }
-    return " ".join([hex_map.get(char.upper(), "20") for char in text])
+    return " ".join([eia608_map.get(char.upper(), "20") for char in text])
 
 def write_scc(subtitles):
     scc_lines = ["Scenarist_SCC V1.0\n"]
     for sub in subtitles:
-        start_time = sub['start'].replace(':', ';', 1)
+        start_time = sub['start'].replace(':', ':', 1)  # Ensure proper format
         scc_text = text_to_scc_hex(sub['text'])
         scc_lines.append(f"{start_time}\t9420 9420 91D0 91D0 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
+st.download_button(label="Download SCC File", data="", file_name="output.scc", mime="text/plain", key="download_scc_top")
 
 uploaded_file = st.file_uploader("Upload EBU STL File", type="stl")
 
