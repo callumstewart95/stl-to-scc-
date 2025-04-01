@@ -5,8 +5,8 @@ import re
 def convert_timecode(tc_bytes):
     hh, mm, ss, ff = struct.unpack('BBBB', tc_bytes)
     frame_rate = 25  # Assuming PAL format
-    frames = (ff * 1000) // frame_rate  # Convert frames to milliseconds equivalent
-    return f"{hh:02}:{mm:02}:{ss:02};{frames:02}"
+    frames = int((ff / 25) * 40)  # Convert to SCC-compatible frame numbering
+    return f"{hh:02}:{mm:02}:{ss:02}:{frames:02}"
 
 def clean_text(text):
     text = text.replace('\x8f', '').replace('\x8a', ' ')  # Remove unwanted characters
@@ -14,10 +14,8 @@ def clean_text(text):
     return text.strip()
 
 def parse_stl(file_content):
-    st.text(f"Raw Data (First 500 bytes): {file_content[:500]}")
-    
     header = file_content[:1024]
-    if not header.startswith(b'850STL'):
+    if not header.startswith(b'850STL') and not header.startswith(b'437STL'):
         st.error("Invalid STL header! Not an EBU 3264 STL file.")
         return []
     
@@ -32,8 +30,6 @@ def parse_stl(file_content):
         end_tc = convert_timecode(block[10:14])
         text = clean_text(block[16:].decode('latin-1'))
         
-        st.text(f"Decoded Line {i}: {text}")
-        
         if text:
             subtitles.append({"start": start_tc, "end": end_tc, "text": text})
     
@@ -41,7 +37,7 @@ def parse_stl(file_content):
 
 def text_to_scc_hex(text):
     hex_map = {
-        "A": "97A1", "B": "97A2", "C": "97A3", "D": "97A4", "E": "97A5", "F": "97A6", "G": "97A7", "H": "97A8", "I": "97A9", "J": "97AA", "K": "97AB", "L": "97AC", "M": "97AD", "N": "97AE", "O": "97AF", "P": "97B0", "Q": "97B1", "R": "97B2", "S": "97B3", "T": "97B4", "U": "97B5", "V": "97B6", "W": "97B7", "X": "97B8", "Y": "97B9", "Z": "97BA", " ": "20"
+        "A": "c141", "B": "c142", "C": "c143", "D": "c144", "E": "c145", "F": "c146", "G": "c147", "H": "c148", "I": "c149", "J": "c14a", "K": "c14b", "L": "c14c", "M": "c14d", "N": "c14e", "O": "c14f", "P": "c150", "Q": "c151", "R": "c152", "S": "c153", "T": "c154", "U": "c155", "V": "c156", "W": "c157", "X": "c158", "Y": "c159", "Z": "c15a", " ": "20"
     }
     return " ".join([hex_map.get(char.upper(), "20") for char in text])
 
@@ -50,7 +46,7 @@ def write_scc(subtitles):
     for sub in subtitles:
         start_time = sub['start']
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 {scc_text} 942C 942C 942F 942F\n")
+        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
@@ -66,6 +62,6 @@ if uploaded_file:
     if subtitles:
         st.success("Subtitles extracted successfully!")
         scc_content = write_scc(subtitles)
-        st.download_button(label="Download SCC File", data=scc_content, file_name="output.scc", mime="text/plain")
+        st.download_button(label="Download SCC File", data=scc_content, file_name="output.scc", mime="text/plain", key="download_scc")
     else:
         st.error("No subtitles found in the STL file!")
