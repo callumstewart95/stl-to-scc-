@@ -5,7 +5,8 @@ import re
 def convert_timecode(tc_bytes):
     hh, mm, ss, ff = struct.unpack('BBBB', tc_bytes)
     frame_rate = 25  # Assuming PAL format
-    return f"{hh:02}:{mm:02}:{ss:02};{ff:02}"
+    frames = int((ff / frame_rate) * 100)
+    return f"{hh:02}:{mm:02}:{ss:02}:{frames:02}"
 
 def clean_text(text):
     text = text.replace('\x8f', '').replace('\x8a', ' ')  # Remove unwanted characters
@@ -38,16 +39,16 @@ def parse_stl(file_content):
 
 def text_to_scc_hex(text):
     hex_map = {
-        "A": "c849", "B": "c842", "C": "c843", "D": "c844", "E": "c845", "F": "c846", "G": "c847", "H": "c848", "I": "c849", "J": "c84a", "K": "c84b", "L": "c84c", "M": "c84d", "N": "c84e", "O": "c84f", "P": "c850", "Q": "c851", "R": "c852", "S": "c853", "T": "c854", "U": "c855", "V": "c856", "W": "c857", "X": "c858", "Y": "c859", "Z": "c85a", " ": "20"
+        "A": "41", "B": "42", "C": "43", "D": "44", "E": "45", "F": "46", "G": "47", "H": "48", "I": "49", "J": "4A", "K": "4B", "L": "4C", "M": "4D", "N": "4E", "O": "4F", "P": "50", "Q": "51", "R": "52", "S": "53", "T": "54", "U": "55", "V": "56", "W": "57", "X": "58", "Y": "59", "Z": "5A", " ": "20"
     }
     return " ".join([hex_map.get(char.upper(), "20") for char in text])
 
 def write_scc(subtitles):
     scc_lines = ["Scenarist_SCC V1.0\n"]
     for sub in subtitles:
-        start_time = sub['start'].replace(';', ':')
+        start_time = sub['start'].replace(':', ';', 1)
         scc_text = text_to_scc_hex(sub['text'])
-        scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 {scc_text} 942C 942C 942F 942F\n")
+        scc_lines.append(f"{start_time}\t9420 9420 91D0 91D0 97A2 97A2 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
 
 st.title("STL to SCC Converter")
