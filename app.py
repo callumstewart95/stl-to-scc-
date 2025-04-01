@@ -38,14 +38,14 @@ def parse_stl(file_content):
 
 def text_to_scc_hex(text):
     hex_map = {
-        "A": "c141", "B": "c142", "C": "c143", "D": "c144", "E": "c145", "F": "c146", "G": "c147", "H": "c148", "I": "c149", "J": "c14a", "K": "c14b", "L": "c14c", "M": "c14d", "N": "c14e", "O": "c14f", "P": "c150", "Q": "c151", "R": "c152", "S": "c153", "T": "c154", "U": "c155", "V": "c156", "W": "c157", "X": "c158", "Y": "c159", "Z": "c15a", " ": "20"
+        "A": "c849", "B": "c842", "C": "c843", "D": "c844", "E": "c845", "F": "c846", "G": "c847", "H": "c848", "I": "c849", "J": "c84a", "K": "c84b", "L": "c84c", "M": "c84d", "N": "c84e", "O": "c84f", "P": "c850", "Q": "c851", "R": "c852", "S": "c853", "T": "c854", "U": "c855", "V": "c856", "W": "c857", "X": "c858", "Y": "c859", "Z": "c85a", " ": "20"
     }
     return " ".join([hex_map.get(char.upper(), "20") for char in text])
 
 def write_scc(subtitles):
     scc_lines = ["Scenarist_SCC V1.0\n"]
     for sub in subtitles:
-        start_time = sub['start']
+        start_time = sub['start'].replace(';', ':')
         scc_text = text_to_scc_hex(sub['text'])
         scc_lines.append(f"{start_time}\t9420 9420 94F4 94F4 {scc_text} 942C 942C 942F 942F\n")
     return "\n".join(scc_lines)
@@ -55,9 +55,6 @@ st.title("STL to SCC Converter")
 uploaded_file = st.file_uploader("Upload EBU STL File", type="stl")
 
 if uploaded_file:
-    st.download_button(label="Download SCC File", data="", file_name="output.scc", mime="text/plain", key="download_scc")
-    st.success("File uploaded successfully!")
-    st.text(f"File Name: {uploaded_file.name}")
     file_content = uploaded_file.read()
     subtitles = parse_stl(file_content)
     
